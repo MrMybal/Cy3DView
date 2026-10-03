@@ -111,3 +111,10 @@ La version 0.4 exige de recompiler avec l'en-tête **v3**. Initialiser tous les 
 `topology=CY3D_TRIANGLES`, et **`instance.node=-1`** pour les scènes statiques.
 `animation_count` doit maintenant correspondre aux clips réellement fournis ; ne plus indiquer seulement leur présence.
 Les sommets statiques gardent leur taille de 40 octets ; couleurs, skin et splats restent des tableaux optionnels séparés.
+
+## Export et outils (0.6)
+
+L'ABI d'import v3 reste inchangée. L'ABI d'extension v1 permet de déclarer des
+exporteurs et des outils avec leur panneau de réglages : voir
+[PLUGIN_EXTENSIONS.md](PLUGIN_EXTENSIONS.md), `include/cy3d_extension.h`,
+`plugins/export/exporter.cpp` et l'éditeur `plugins/xatlas/tool.cpp`.

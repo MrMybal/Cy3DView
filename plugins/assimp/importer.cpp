@@ -241,6 +241,13 @@ int load(const char* filename, const Cy3DHost* host, Cy3DScene** output, char* e
                 colors.resize(static_cast<size_t>(m.mNumVertices) * 4);
                 for (unsigned j = 0; j < m.mNumVertices; ++j)
                     std::copy_n(&m.mColors[0][j].r, 4, colors.data() + j * 4);
+                if (native(filename).extension() == ".ply") {
+                    for (size_t c = 0; c < colors.size(); ++c)
+                        if (c % 4 != 3) {
+                            float v = colors[c];
+                            colors[c] = v <= .04045f ? v / 12.92f : std::pow((v + .055f) / 1.055f, 2.4f);
+                        }
+                }
                 s.meshes[i].colors = colors.data();
             }
             if (m.HasBones()) {

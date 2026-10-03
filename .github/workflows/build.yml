@@ -26,6 +26,11 @@ jobs:
         run: cmake --build build/Release --parallel 3
       - name: Import tests
         run: ctest --test-dir build/Release -LE gpu --output-on-failure
+      - name: Validate exported glTF
+        shell: bash
+        run: |
+          npm install --prefix build/validation --cache build/npm-cache --ignore-scripts --no-audit --no-fund gltf-validator@2.0.0-dev.3.10
+          node tools/validate_exports.cjs build/Release/extension-tests-épreuve build/validation/node_modules/gltf-validator
       - name: Linux GPU tests
         if: runner.os == 'Linux'
         run: xvfb-run -a ctest --test-dir build/Release -L gpu --output-on-failure

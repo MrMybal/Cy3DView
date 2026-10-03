@@ -14,7 +14,7 @@ Les bibliothèques tierces conservent leurs licences et attributions : voir
 
 Dépôt du projet : [MrMybal/Cy3DView](https://github.com/MrMybal/Cy3DView).
 
-La version 0.5 possède un moteur portable Windows / Linux / macOS (OpenGL 3.3).
+La version 0.6 possède un moteur portable Windows / Linux / macOS (OpenGL 3.3).
 La compilation et le rendu ont été vérifiés sur Windows ; les configurations Linux/macOS sont prévues dans la CI.
 CyImgView lui-même est actuellement une application Windows : Cy3DView en reprend les principes,
 pas le code Win32/Direct2D.
@@ -53,6 +53,17 @@ La ligne de commande accepte également `--language en` ou `--language fr`.
 Le logo violet est embarqué dans l'application : en-tête, accueil, fenêtre des plugins et icône Windows.
 Pour remplacer le visuel dans les sources, mettre à jour `cy3dview-logo-violet.png`, puis exécuter
 `python tools/prepare_logo.py` (Pillow requis pour cette préparation seulement) et recompiler.
+
+## Conversion et outils
+
+Le bouton **Export / Exporter** convertit la scène vers GLB, glTF, FBX binaire ou ASCII,
+OBJ + MTL, STL et PLY. **Tools / Outils** ouvre les éditeurs fournis par les plugins.
+Le premier est un véritable éditeur d'atlas UV avec **xatlas**, aperçu, progression,
+annulation et restauration de l'état précédent. Les modifications restent sur une copie
+et peuvent être exportées ; le modèle source est conservé.
+
+Voir [les formats et limites de conversion](docs/EXPORTING.md) et
+[l'API pour ajouter des exporteurs ou outils](docs/PLUGIN_EXTENSIONS.md).
 
 ## Fonctions disponibles
 

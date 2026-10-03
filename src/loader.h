@@ -22,6 +22,7 @@ struct Scene {
     };
     std::shared_ptr<Module> module;
     Cy3DScene* data = nullptr;
+    std::shared_ptr<Cy3DScene> extension_data;
     std::vector<Image> images;
     std::vector<uint8_t> texture_usage; // bit 0: linear data, bit 1: sRGB color
     std::shared_ptr<AnimationData> animation;
@@ -32,11 +33,12 @@ struct Scene {
     uint64_t vertices = 0, triangles = 0, points = 0, splats = 0, gpu_bytes = 0;
     bool reusable = true;
     ~Scene() {
-        if (data)
+        if (data && module)
             module->api->release(data);
     }
 };
 std::shared_ptr<Scene> importScene(Plugins&, const fs::path&, std::atomic<bool>&, std::atomic<float>&);
+void prepareScene(Scene&, const fs::path&, const std::atomic<bool>&, uint64_t budget);
 void decodeImages(Scene&, const fs::path&, const std::atomic<bool>&);
 struct Result {
     uint64_t generation = 0;

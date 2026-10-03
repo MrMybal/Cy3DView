@@ -1,5 +1,20 @@
 # Évolutions
 
+## 0.6.0 — 3 octobre 2026
+
+- Conversion vers GLB, glTF + BIN, FBX binaire/ASCII, OBJ + MTL, STL et PLY binaires.
+- Conservation PBR glTF : images embarquées ou relatives, ORM, UV0/UV1, transformations UV,
+  alpha, émission et intensité des normales/occlusion ; clips, skin et STEP uniforme.
+- Écriture PLY dédiée pour triangles/points, normales, UV0 et couleurs ; FBX expérimental
+  avec matériaux simplifiés et interpolation linéaire.
+- ABI d'extensions C v1 indépendante de l'import v3 : exporteurs et outils avec UI native.
+- Premier éditeur UV xatlas : résolution, marge, qualité, canal UV et aperçu ; copie indépendante
+  avec remappage des couleurs/poids ; annulation et restauration de l'état précédent.
+- Traitements en arrière-plan, progression animée, protection des fichiers source,
+  staging des exports et confirmation des remplacements avec sauvegarde/rollback.
+- En-têtes du SDK et documentation livrés dans le paquet ; modules chargés à la demande.
+- Tests de conversion/relecture, matériaux, animations, points, UV, rendu et plugins installés.
+
 ## 0.5.0 — 3 octobre 2026
 
 - Installeur Windows par utilisateur, sans droits administrateur, anglais/français, logo, licence GPL, raccourcis et désinstallation Windows.

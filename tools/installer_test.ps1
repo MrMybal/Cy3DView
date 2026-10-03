@@ -57,6 +57,12 @@ try {
         throw "Installed import test failed (exit $($process.ExitCode)). Logs: $testRoot"
     }
     Get-Content -LiteralPath $probeOutput | Select-Object -Last 1 | Write-Output
+    $extensionTest=Join-Path $projectRoot 'build/Release/bin/cy3d_extension_test.exe'
+    $extensionOutput=Join-Path $testRoot 'installed-extensions.stdout.log'
+    $extensionError=Join-Path $testRoot 'installed-extensions.stderr.log'
+    $process=Start-Process -FilePath $extensionTest -ArgumentList ('"{0}" "{1}" "{2}"' -f (Join-Path $installDir 'plugins'),$fixtures,$testRoot) -WorkingDirectory $installDir -WindowStyle Hidden -RedirectStandardOutput $extensionOutput -RedirectStandardError $extensionError -Wait -PassThru
+    if($process.ExitCode -ne 0){throw "Installed export/tool test failed (exit $($process.ExitCode)). Logs: $testRoot"}
+    Get-Content -LiteralPath $extensionOutput | Select-Object -Last 1 | Write-Output
     $capture=Join-Path $testRoot 'installed-ui.png'
     $sample=Join-Path $installDir 'samples/pbr_studio.gltf'
     $renderOutput=Join-Path $testRoot 'installed-render.stdout.log'

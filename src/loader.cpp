@@ -31,42 +31,14 @@ bool fresh(const Scene& scene) {
     return true;
 }
 } // namespace
-std::shared_ptr<Scene> importScene(Plugins& plugins, const fs::path& file, std::atomic<bool>& cancel,
-                                   std::atomic<float>& progress) {
-    auto start = std::chrono::steady_clock::now();
-    auto scene = std::make_shared<Scene>();
-    scene->module = plugins.forFile(file);
-    struct Context {
-        std::atomic<bool>& cancel;
-        std::atomic<float>& progress;
-    } context{cancel, progress};
-    Cy3DHost host{CY3D_API_VERSION,
-                  sizeof(Cy3DHost),
-                  &context,
-                  [](void* p) { return static_cast<Context*>(p)->cancel.load() ? 1 : 0; },
-                  [](void* p, float f) { static_cast<Context*>(p)->progress.store(std::clamp(f, 0.f, 1.f)); },
-                  2ull * 1024 * 1024 * 1024};
-    char error[2048]{};
-    int code;
-    std::vector<Module*> skipped;
-    for (;;) {
-        code = scene->module->api->load(utf8(file).c_str(), &host, &scene->data, error, sizeof(error));
-        if (code != -3)
-            break;
-        if (scene->data) {
-            scene->module->api->release(scene->data);
-            scene->data = nullptr;
-        }
-        skipped.push_back(scene->module.get());
-        scene->module = plugins.forFile(file, skipped);
-    }
-    if (code || !scene->data)
-        throw std::runtime_error(cancel ? "Chargement annule" : (error[0] ? error : "Echec de l'import"));
+void prepareScene(Scene& targetScene, const fs::path& file, const std::atomic<bool>& cancel,
+                  uint64_t budget) {
+    auto* scene = &targetScene;
     auto& s = *scene->data;
     if (s.struct_size < sizeof(Cy3DScene) || !s.mesh_count || !s.meshes || !s.instance_count ||
         !s.instances || !s.material_count || !s.materials || (s.texture_count && !s.textures))
         throw std::runtime_error("Scene de plugin invalide");
-    if (s.memory_bytes > host.max_output_bytes)
+    if (s.memory_bytes > budget)
         throw std::runtime_error("Scene trop volumineuse (limite de 2 Gio)");
     if (s.node_count || s.animation_count)
         scene->animation = std::make_shared<AnimationData>(s);
@@ -110,6 +82,22 @@ std::shared_ptr<Scene> importScene(Plugins& plugins, const fs::path& file, std::
             if (m.indices[j] >= m.vertex_count)
                 throw std::runtime_error("Indice de sommet invalide");
         }
+        for (uint32_t j = 0; j < m.vertex_count; ++j) {
+            if ((j & 65535) == 0 && cancel)
+                throw std::runtime_error("Operation cancelled.");
+            for (float coordinate : m.vertices[j].position)
+                if (!std::isfinite(coordinate))
+                    throw std::runtime_error("Non-finite vertex position");
+            for (float coordinate : m.vertices[j].normal)
+                if (!std::isfinite(coordinate))
+                    throw std::runtime_error("Non-finite vertex normal");
+            for (float coordinate : m.vertices[j].uv)
+                if (!std::isfinite(coordinate))
+                    throw std::runtime_error("Non-finite UV coordinate");
+            for (float coordinate : m.vertices[j].uv1)
+                if (!std::isfinite(coordinate))
+                    throw std::runtime_error("Non-finite UV coordinate");
+        }
         scene->vertices += m.vertex_count;
         scene->gpu_bytes += static_cast<uint64_t>(m.vertex_count) * sizeof(Cy3DVertex) +
                             static_cast<uint64_t>(m.index_count) * sizeof(uint32_t);
@@ -136,6 +124,9 @@ std::shared_ptr<Scene> importScene(Plugins& plugins, const fs::path& file, std::
             scene->gpu_bytes += static_cast<uint64_t>(m.vertex_count) * sizeof(Cy3DSplat);
     }
     for (uint32_t i = 0; i < s.instance_count; ++i) {
+        for (float coordinate : s.instances[i].transform)
+            if (!std::isfinite(coordinate))
+                throw std::runtime_error("Non-finite instance transform");
         if (s.instances[i].mesh >= s.mesh_count)
             throw std::runtime_error("Instance de plugin invalide");
         const auto& mesh = s.meshes[s.instances[i].mesh];
@@ -165,14 +156,52 @@ std::shared_ptr<Scene> importScene(Plugins& plugins, const fs::path& file, std::
                     (track.positions.size() + track.rotations.size() + track.scales.size()) * sizeof(Cy3DKey);
         }
     }
+    decodeImages(*scene, file, cancel);
+    if (cancel)
+        throw std::runtime_error("Operation cancelled.");
+    if (scene->memory > budget)
+        throw std::runtime_error("Decoded scene exceeds its memory budget.");
+    for (size_t i = 0; i < scene->images.size(); ++i)
+        scene->gpu_bytes += scene->images[i].rgba.size() * (scene->texture_usage[i] == 3 ? 2 : 1);
+}
+std::shared_ptr<Scene> importScene(Plugins& plugins, const fs::path& file, std::atomic<bool>& cancel,
+                                   std::atomic<float>& progress) {
+    auto start = std::chrono::steady_clock::now();
+    auto scene = std::make_shared<Scene>();
+    scene->module = plugins.forFile(file);
+    struct Context {
+        std::atomic<bool>& cancel;
+        std::atomic<float>& progress;
+    } context{cancel, progress};
+    Cy3DHost host{CY3D_API_VERSION,
+                  sizeof(Cy3DHost),
+                  &context,
+                  [](void* p) { return static_cast<Context*>(p)->cancel.load() ? 1 : 0; },
+                  [](void* p, float f) { static_cast<Context*>(p)->progress.store(std::clamp(f, 0.f, 1.f)); },
+                  2ull * 1024 * 1024 * 1024};
+    char error[2048]{};
+    int code;
+    std::vector<Module*> skipped;
+    for (;;) {
+        code = scene->module->api->load(utf8(file).c_str(), &host, &scene->data, error, sizeof(error));
+        if (code != -3)
+            break;
+        if (scene->data) {
+            scene->module->api->release(scene->data);
+            scene->data = nullptr;
+        }
+        skipped.push_back(scene->module.get());
+        scene->module = plugins.forFile(file, skipped);
+    }
+    if (code || !scene->data)
+        throw std::runtime_error(cancel ? "Chargement annule" : (error[0] ? error : "Echec de l'import"));
+    prepareScene(*scene, file, cancel, host.max_output_bytes);
     auto extension = file.extension().string();
     std::transform(extension.begin(), extension.end(), extension.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     if (extension == ".usd" || extension == ".usda" || extension == ".usdc" || extension == ".usdz")
         scene->reusable = false;
-    decodeImages(*scene, file, cancel);
-    for (size_t i = 0; i < scene->images.size(); ++i)
-        scene->gpu_bytes += scene->images[i].rgba.size() * (scene->texture_usage[i] == 3 ? 2 : 1);
+    auto& s = *scene->data;
     std::vector<fs::path> dependencies{file};
     for (uint32_t i = 0; i < s.dependency_count; ++i)
         if (s.dependencies && s.dependencies[i])

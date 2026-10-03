@@ -10,6 +10,7 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEPS = {
+    "xatlas": ("jpcy/xatlas", "f700c7790aaa030e794b52ba7791a05c085faf0c"),
     "glfw": ("glfw/glfw", "3.4"),
     "imgui": ("ocornut/imgui", "v1.91.9b"),
     "assimp": ("assimp/assimp", "v6.0.2"),
@@ -17,6 +18,7 @@ DEPS = {
     "tinyusdz": ("lighttransport/tinyusdz", "6050eef932f7d2788656d63297aa488fb0961ed1"),
 }
 HASHES = {
+    "xatlas": "57b56dbedab3bf0a487e4c0ed3cc3fe79210d4a008d59a8326af59196a3487eb",
     "glfw": "c038d34200234d071fae9345bc455e4a8f2f544ab60150765d7704e08f3dac01",
     "imgui": "8e1bbc76c71d74fef2fb85db7e7ca8eba13d6a86623c54992b60162db554ffdb",
     "assimp": "d1822d9a19c9205d6e8bc533bf897174ddb360ce504680f294170cc1d6319751",

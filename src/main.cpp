@@ -5,6 +5,7 @@
 #include "localization.h"
 #include "ui_navigation.h"
 #include "updater.h"
+#include "editor_ui.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -67,6 +68,7 @@ class App {
     Loader loader_;
     Renderer renderer_;
     Branding branding_;
+    EditorUI editor_;
     fs::path executable_, requested_, current_, directory_;
     Localization localization_;
     Updater updater_{[] { glfwPostEmptyEvent(); }};
@@ -172,6 +174,7 @@ class App {
             scan(absolute);
             return;
         }
+        editor_.reset();
         requested_ = absolute;
         loading_ = true;
         load_start_ = std::chrono::steady_clock::now();
@@ -524,6 +527,13 @@ class App {
                 ImGui::PopTextWrapPos();
                 ImGui::Spacing();
             }
+            for (const auto& format : editor_.extensions().formats())
+                ImGui::Text(
+                    "Export: %s",
+                    (localization_.language == Language::French ? format.name_fr : format.name).c_str());
+            for (const auto& tool : editor_.extensions().tools())
+                ImGui::Text("%s",
+                            (localization_.language == Language::French ? tool.name_fr : tool.name).c_str());
             ImGui::TextWrapped(
                 tr("Available formats depend on installed plugins. Proprietary CAD formats, Blender and "
                    "Unreal require their respective software. USD support is experimental."));
@@ -577,8 +587,8 @@ class App {
     App(GLFWwindow* window, Plugins& plugins, const fs::path& executable, const Localization& localization,
         bool persistLanguage = true)
         : window_(window), plugins_(plugins), loader_(plugins, [] { glfwPostEmptyEvent(); }),
-          branding_(window), executable_(executable), localization_(localization),
-          persist_language_(persistLanguage) {
+          branding_(window), editor_(executable.parent_path() / "plugins", [] { glfwPostEmptyEvent(); }),
+          executable_(executable), localization_(localization), persist_language_(persistLanguage) {
         glfwSetWindowUserPointer(window_, this);
         glfwSetDropCallback(window_, [](GLFWwindow* w, int count, const char** files) {
             if (count)
@@ -591,7 +601,7 @@ class App {
             *scan_cancel_ = true;
     }
     void run(const fs::path& initial, const fs::path& screenshot = {}, bool captureLoading = false,
-             bool showUpdates = false) {
+             bool showUpdates = false, bool showTools = false) {
         updates_ = showUpdates;
         if (!initial.empty())
             open(initial);
@@ -616,6 +626,17 @@ class App {
                 auto file = std::move(dropped_);
                 dropped_.clear();
                 open(path(file));
+            }
+            if (auto edited = editor_.take(scene_); edited && !loading_ && !staged_scene_) {
+                try {
+                    upload_start_ = std::chrono::steady_clock::now();
+                    renderer_.beginUpload(edited);
+                    staged_scene_ = std::move(edited);
+                    staged_file_ = current_;
+                    staged_cached_ = false;
+                } catch (const std::exception& e) {
+                    error_ = e.what();
+                }
             }
             if (auto result = loader_.take(); result && result->generation == generation_) {
                 error_ = result->error;
@@ -650,6 +671,10 @@ class App {
                     staged_scene_.reset();
                     loading_ = false;
                 }
+            }
+            if (showTools && scene_ && !loading_ && !staged_scene_) {
+                editor_.showToolForSmoke(scene_);
+                showTools = false;
             }
             auto now = std::chrono::steady_clock::now();
             float dt = static_cast<float>(std::chrono::duration<double>(now - last).count());
@@ -746,7 +771,7 @@ class App {
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("%s", tr("Language"));
             ImGui::Separator();
-            float bottom = 48;
+            float bottom = 86;
             float available = ImGui::GetContentRegionAvail().y - bottom;
             if (explorer_) {
                 ImGui::BeginChild("explorer", {260, available}, true);
@@ -875,11 +900,19 @@ class App {
                 ImGui::EndChild();
             }
             ImGui::Separator();
+            editor_.toolbar(scene_, current_, loading_ || bool(staged_scene_), localization_.language);
+            ImGui::Separator();
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
             ImGui::TextWrapped("%s", tr("Drag: orbit  |  Right drag: pan  |  Wheel: zoom  |  WASD / ZQSD: "
                                         "move  |  Shift: faster  |  Arrows: model  |  F11: fullscreen"));
             ImGui::PopStyleColor();
             popups();
+#ifdef _WIN32
+            editor_.draw(scene_, current_, loading_ || bool(staged_scene_), localization_.language,
+                         glfwGetWin32Window(window_));
+#else
+            editor_.draw(scene_, current_, loading_ || bool(staged_scene_), localization_.language, nullptr);
+#endif
             ImGui::End();
             ImGui::PopStyleVar(2);
             ImGui::Render();
@@ -899,7 +932,8 @@ class App {
                 }
                 if (!error_.empty())
                     throw std::runtime_error(error_);
-                if (!loading_ && !scan_.valid() && ++screenshotFrames >= 8) {
+                if (!loading_ && !staged_scene_ && !editor_.busy() && !scan_.valid() &&
+                    ++screenshotFrames >= 8) {
                     if (!Renderer::saveWindow(screenshot, framebufferW, framebufferH))
                         throw std::runtime_error("Capture UI impossible");
                     return;
@@ -909,7 +943,8 @@ class App {
             }
             glfwSwapBuffers(window_);
             bool active = navigating || spin_ || ImGui::IsAnyItemActive() || io.WantTextInput || loading_ ||
-                          scan_.valid() || updater_.snapshot().phase == UpdatePhase::Checking ||
+                          scan_.valid() || editor_.busy() ||
+                          updater_.snapshot().phase == UpdatePhase::Checking ||
                           updater_.snapshot().phase == UpdatePhase::Downloading;
             if (warmup > 0) {
                 --warmup;
@@ -977,7 +1012,7 @@ int main(int argc, char** argv) {
     // Smoke runs are deterministic and never read or change personal preferences.
     bool diagnosticRun = std::any_of(args.begin(), args.end(), [](const auto& arg) {
         return arg == "--smoke" || arg == "--ui-smoke" || arg == "--loading-smoke" ||
-               arg == "--updates-smoke";
+               arg == "--updates-smoke" || arg == "--tools-smoke";
     });
     if (!diagnosticRun)
         localization.load(executable.parent_path() / "Cy3DView.ini");
@@ -1001,8 +1036,9 @@ int main(int argc, char** argv) {
     Plugins plugins(executable.parent_path() / "plugins");
     bool smoke = !args.empty() && args[0] == "--smoke",
          loadingSmoke = !args.empty() && args[0] == "--loading-smoke";
+    bool toolsSmoke = !args.empty() && args[0] == "--tools-smoke";
     bool updatesSmoke = !args.empty() && args[0] == "--updates-smoke";
-    bool uiSmoke = !args.empty() && (args[0] == "--ui-smoke" || loadingSmoke || updatesSmoke);
+    bool uiSmoke = !args.empty() && (args[0] == "--ui-smoke" || loadingSmoke || updatesSmoke || toolsSmoke);
     glfwSetErrorCallback([](int, const char* error) { std::cerr << error << '\n'; });
     if (!glfwInit())
         return 1;
@@ -1053,7 +1089,7 @@ int main(int argc, char** argv) {
             {
                 App app(window, plugins, executable, localization, !diagnosticRun);
                 app.run(args.empty() ? fs::path{} : path(args[uiSmoke ? 1 : 0]),
-                        uiSmoke ? path(args[2]) : fs::path{}, loadingSmoke, updatesSmoke);
+                        uiSmoke ? path(args[2]) : fs::path{}, loadingSmoke, updatesSmoke, toolsSmoke);
             }
             ImGui_ImplOpenGL3_Shutdown();
             ImGui_ImplGlfw_Shutdown();

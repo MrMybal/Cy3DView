@@ -5,9 +5,10 @@ Les dépendances sont épinglées dans CMake et vérifiées par SHA-256 lors du 
 
 | Bibliothèque | Révision | Licence | Rôle |
 |---|---|---|---|
+| xatlas | f700c7790aaa030e794b52ba7791a05c085faf0c | MIT (Jonathan Young) | Génération et empaquetage des atlas UV |
 | GLFW | 3.4 | zlib/libpng | Fenêtres et contexte OpenGL portable |
 | Dear ImGui | 1.91.9b | MIT | Interface native |
-| Assimp | 6.0.2 | BSD-3-Clause, voir les notices incluses | Import de formats 3D, uniquement dans le plugin |
+| Assimp | 6.0.2 | BSD-3-Clause, voir les notices incluses | Import et export de formats 3D, uniquement dans les plugins |
 | tinyusdz | 6050eef932f7d2788656d63297aa488fb0961ed1 | Apache-2.0 et composants inclus | Lecteur USD compatible avec l'adaptateur Assimp épinglé |
 | stb | f0569113c93ad095470c54bf34a17b36646bbbb5 | MIT ou domaine public | Images de textures et captures PNG |
 | GLAD | copie fournie par GLFW 3.4 | MIT/Apache-2.0, en-tête du fichier | Chargement des fonctions OpenGL |
@@ -24,5 +25,9 @@ Assimp contient d'autres composants et leurs notices : voir son fichier `LICENSE
 Les exemples et fichiers de test sont générés dans ce projet, sans asset tiers.
 Le test local Unreal utilise éventuellement un asset du moteur installé, sans le distribuer dans les samples.
 Les passerelles utilisent des installations externes Blender/Unreal ; aucun de ces logiciels n'est embarqué.
-`tools/prepare_assimp.py` applique deux ajustements reproductibles à Assimp : chemin de la dépendance tinyusdz,
-et préservation des modes d'interpolation des animations glTF. Les archives amont restent vérifiées par SHA-256.
+`tools/prepare_assimp.py` applique des ajustements reproductibles à Assimp : chemin de tinyusdz,
+préservation et export STEP en glTF, export des transformations UV glTF et correction du
+lookup d'indices FBX entre plusieurs canaux UV et initialisation des bornes d'accessors glTF et détection de l'extension volume. Les archives amont restent vérifiées par SHA-256.
+Le PLY binaire est écrit directement par le plugin d'export pour garantir un en-tête cohérent.
+
+Le validateur Khronos glTF (npm `gltf-validator` 2.0.0-dev.3.10, Apache-2.0) est utilisé seulement par la CI ; il ne fait pas partie de la distribution.
