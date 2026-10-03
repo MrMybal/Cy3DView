@@ -38,3 +38,4 @@ $version=$match.Groups[1].Value
 $archive=Join-Path $projectRoot "dist\Cy3DView-$version-win64.zip"
 Compress-Archive -Path $portable -DestinationPath $archive -Force
 Write-Host "Version portable verifiee -> $archive"
+& (Join-Path $PSScriptRoot 'build_installer.ps1')

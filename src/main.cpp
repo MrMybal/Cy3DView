@@ -4,6 +4,7 @@
 #include "branding.h"
 #include "localization.h"
 #include "ui_navigation.h"
+#include "updater.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -68,6 +69,10 @@ class App {
     Branding branding_;
     fs::path executable_, requested_, current_, directory_;
     Localization localization_;
+    Updater updater_{[] { glfwPostEmptyEvent(); }};
+    bool updates_ = false;
+    char update_token_[257]{};
+    std::string update_error_;
     bool persist_language_ = true;
     const char* tr(const char* english) const { return localization_.text(english); }
     const char* label(const char* english) const { return localization_.label(english); }
@@ -410,6 +415,93 @@ class App {
         }
     }
     void popups() {
+        if (updates_) {
+            ImGui::OpenPopup(label("Updates"));
+            updates_ = false;
+        }
+        ImGui::SetNextWindowSize({580, 0}, ImGuiCond_Appearing);
+        if (ImGui::BeginPopupModal(label("Updates"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            auto update = updater_.snapshot();
+            bool busy = update.phase == UpdatePhase::Checking || update.phase == UpdatePhase::Downloading;
+            ImGui::Text(tr("Installed version: %s"), CY3D_VERSION);
+            if (update.phase == UpdatePhase::Idle)
+                ImGui::TextWrapped("%s", tr("Check GitHub for the latest stable version."));
+            if (update.phase == UpdatePhase::Checking) {
+                const char* frames[]{"|", "/", "-", "\\"};
+                ImGui::Text("%s  %s", frames[static_cast<int>(ImGui::GetTime() * 8) % 4],
+                            tr("Checking for updates..."));
+            }
+            if (update.phase == UpdatePhase::Current)
+                ImGui::TextWrapped("%s", tr("You have the latest version."));
+            if (update.phase == UpdatePhase::Available || update.phase == UpdatePhase::Downloading ||
+                update.phase == UpdatePhase::Ready) {
+                ImGui::Text(tr("New version: %s"), update.release.version.c_str());
+                if (!update.release.notes.empty()) {
+                    ImGui::BeginChild("release-notes", {0, 145}, true);
+                    ImGui::TextWrapped("%s", update.release.notes.c_str());
+                    ImGui::EndChild();
+                }
+#ifdef _WIN32
+                if (update.phase == UpdatePhase::Available && ImGui::Button(label("Download update")))
+                    updater_.download(update_token_);
+                if (update.phase == UpdatePhase::Downloading) {
+                    auto progress =
+                        update.release.size ? static_cast<float>(update.received) / update.release.size : 0.f;
+                    ImGui::ProgressBar(progress, {-1, 22});
+                    ImGui::Text(tr("Downloading and verifying... %.1f / %.1f MiB"),
+                                update.received / 1048576., update.release.size / 1048576.);
+                }
+                if (update.phase == UpdatePhase::Ready) {
+                    ImGui::TextWrapped(
+                        "%s", tr("Download verified. The app will close and the installer will open in the "
+                                 "current folder. Preferences and additional plugins are kept."));
+                    if (ImGui::Button(label("Close app and install"))) {
+                        if (updater_.install(executable_.parent_path(),
+                                             localization_.language == Language::French, update_error_))
+                            glfwSetWindowShouldClose(window_, GLFW_TRUE);
+                    }
+                }
+#else
+                ImGui::TextWrapped("%s", tr("Download the package for your system from the release page."));
+#endif
+            }
+            if (update.phase == UpdatePhase::Cancelled)
+                ImGui::TextWrapped("%s", tr("Update cancelled."));
+            if (!update.error.empty())
+                ImGui::TextWrapped("%s", localization_.diagnostic(update.error).c_str());
+            if (!update_error_.empty())
+                ImGui::TextWrapped("%s", localization_.diagnostic(update_error_).c_str());
+            if (ImGui::CollapsingHeader(label("Private repository access (optional)"))) {
+                ImGui::TextWrapped(
+                    "%s",
+                    tr("Only needed while the repository is private. Use a GitHub token with Contents: read "
+                       "access to Cy3DView. It stays in memory for this session and is never saved."));
+                ImGui::BeginDisabled(busy);
+                ImGui::SetNextItemWidth(-1);
+                ImGui::InputText("##github-token", update_token_, sizeof(update_token_),
+                                 ImGuiInputTextFlags_Password);
+                ImGui::EndDisabled();
+            }
+            ImGui::Separator();
+            ImGui::BeginDisabled(busy);
+            if (ImGui::Button(label("Check for updates"))) {
+                update_error_.clear();
+                updater_.check(CY3D_VERSION, update_token_);
+            }
+            ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button(label("GitHub releases")))
+                Updater::openReleases();
+            if (busy) {
+                ImGui::SameLine();
+                if (ImGui::Button(label("Cancel")))
+                    updater_.cancel();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(label("Close")))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
         if (about_) {
             ImGui::OpenPopup(label("Formats and plugins"));
             about_ = false;
@@ -498,7 +590,9 @@ class App {
         if (scan_cancel_)
             *scan_cancel_ = true;
     }
-    void run(const fs::path& initial, const fs::path& screenshot = {}, bool captureLoading = false) {
+    void run(const fs::path& initial, const fs::path& screenshot = {}, bool captureLoading = false,
+             bool showUpdates = false) {
+        updates_ = showUpdates;
         if (!initial.empty())
             open(initial);
         auto last = std::chrono::steady_clock::now();
@@ -627,6 +721,9 @@ class App {
             ImGui::SameLine();
             if (ImGui::Button("Plugins", {75, 28}))
                 about_ = true;
+            ImGui::SameLine();
+            if (ImGui::Button(label("Updates"), {0, 28}))
+                updates_ = true;
             ImGui::SameLine();
             ImGui::Checkbox(label("Folder"), &explorer_);
             ImGui::SameLine();
@@ -812,7 +909,8 @@ class App {
             }
             glfwSwapBuffers(window_);
             bool active = navigating || spin_ || ImGui::IsAnyItemActive() || io.WantTextInput || loading_ ||
-                          scan_.valid();
+                          scan_.valid() || updater_.snapshot().phase == UpdatePhase::Checking ||
+                          updater_.snapshot().phase == UpdatePhase::Downloading;
             if (warmup > 0) {
                 --warmup;
                 glfwPollEvents();
@@ -878,10 +976,16 @@ int main(int argc, char** argv) {
     Localization localization;
     // Smoke runs are deterministic and never read or change personal preferences.
     bool diagnosticRun = std::any_of(args.begin(), args.end(), [](const auto& arg) {
-        return arg == "--smoke" || arg == "--ui-smoke" || arg == "--loading-smoke";
+        return arg == "--smoke" || arg == "--ui-smoke" || arg == "--loading-smoke" ||
+               arg == "--updates-smoke";
     });
     if (!diagnosticRun)
         localization.load(executable.parent_path() / "Cy3DView.ini");
+#ifdef _WIN32
+    // Keep the installation mutex until process exit, including GPU/DLL cleanup.
+    if (!diagnosticRun)
+        CreateMutexW(nullptr, FALSE, L"Local\\Cy3DView.App");
+#endif
     for (size_t i = 0; i < args.size();) {
         if (args[i] != "--language") {
             ++i;
@@ -897,7 +1001,8 @@ int main(int argc, char** argv) {
     Plugins plugins(executable.parent_path() / "plugins");
     bool smoke = !args.empty() && args[0] == "--smoke",
          loadingSmoke = !args.empty() && args[0] == "--loading-smoke";
-    bool uiSmoke = !args.empty() && (args[0] == "--ui-smoke" || loadingSmoke);
+    bool updatesSmoke = !args.empty() && args[0] == "--updates-smoke";
+    bool uiSmoke = !args.empty() && (args[0] == "--ui-smoke" || loadingSmoke || updatesSmoke);
     glfwSetErrorCallback([](int, const char* error) { std::cerr << error << '\n'; });
     if (!glfwInit())
         return 1;
@@ -948,7 +1053,7 @@ int main(int argc, char** argv) {
             {
                 App app(window, plugins, executable, localization, !diagnosticRun);
                 app.run(args.empty() ? fs::path{} : path(args[uiSmoke ? 1 : 0]),
-                        uiSmoke ? path(args[2]) : fs::path{}, loadingSmoke);
+                        uiSmoke ? path(args[2]) : fs::path{}, loadingSmoke, updatesSmoke);
             }
             ImGui_ImplOpenGL3_Shutdown();
             ImGui_ImplGlfw_Shutdown();

@@ -1,5 +1,15 @@
 # Évolutions
 
+## 0.5.0 — 3 octobre 2026
+
+- Installeur Windows par utilisateur, sans droits administrateur, anglais/français, logo, licence GPL, raccourcis et désinstallation Windows.
+- Mise à jour d'une installation existante sans suppression des préférences ni des plugins supplémentaires.
+- Bouton Updates / Mises à jour : recherche asynchrone des versions stables GitHub, notes et progression de téléchargement.
+- Vérification obligatoire de la taille et de l'empreinte SHA-256 de l'installeur ; ouverture après confirmation et fermeture de l'application.
+- Accès facultatif au dépôt privé par jeton en mémoire uniquement ; aucune connexion nécessaire lorsque le dépôt est public.
+- Sous Linux/macOS, recherche des versions et accès à la page de téléchargement ; installation manuelle du paquet approprié.
+- Correction de la casse du dossier Collada dans les tests des modèles amont pour Linux.
+
 ## 0.4.4 — 3 octobre 2026
 
 - Compilation macOS avec la zlib du SDK système, pour éviter l'incompatibilité de la copie Assimp avec les SDK Apple récents.

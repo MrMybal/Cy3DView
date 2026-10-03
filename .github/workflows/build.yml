@@ -15,7 +15,7 @@ jobs:
         if: runner.os == 'Windows'
       - name: Linux dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev libgl1-mesa-dri xvfb
+        run: sudo apt-get update && sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev libgl1-mesa-dri libcurl4-openssl-dev xvfb
       - name: macOS dependencies
         if: runner.os == 'macOS'
         run: brew install ninja
@@ -31,6 +31,19 @@ jobs:
         run: xvfb-run -a ctest --test-dir build/Release -L gpu --output-on-failure
       - name: Portable package
         run: cmake --install build/Release --prefix dist/Cy3DView
+      - name: Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/build_installer.ps1
+      - name: Windows install and upgrade tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/installer_test.ps1
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: Cy3DView-Windows-installer
+          path: dist/*-setup.exe
       - uses: actions/upload-artifact@v4
         with:
           name: Cy3DView-${{ runner.os }}

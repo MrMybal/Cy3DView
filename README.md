@@ -14,12 +14,30 @@ Les bibliothèques tierces conservent leurs licences et attributions : voir
 
 Dépôt du projet : [MrMybal/Cy3DView](https://github.com/MrMybal/Cy3DView).
 
-La version 0.4 possède un moteur portable Windows / Linux / macOS (OpenGL 3.3).
+La version 0.5 possède un moteur portable Windows / Linux / macOS (OpenGL 3.3).
 La compilation et le rendu ont été vérifiés sur Windows ; les configurations Linux/macOS sont prévues dans la CI.
 CyImgView lui-même est actuellement une application Windows : Cy3DView en reprend les principes,
 pas le code Win32/Direct2D.
 
 ## Lancer
+
+Sous Windows, télécharger `Cy3DView-<version>-win64-setup.exe` depuis les
+[versions GitHub](https://github.com/MrMybal/Cy3DView/releases). L'installeur propose
+anglais/français et installe dans `%LOCALAPPDATA%\Programs\Cy3DView`, sans droits administrateur.
+Il ajoute le menu Démarrer, un raccourci bureau facultatif et l'entrée de désinstallation Windows.
+La version ZIP portable reste disponible.
+
+Le bouton **Updates / Mises à jour** recherche les versions stables, affiche leurs notes,
+télécharge l'installeur et vérifie sa taille et son empreinte SHA-256 publiée par GitHub.
+**Close app and install / Fermer l'application et installer** ouvre l'assistant dans le dossier
+actuel après fermeture de l'application. Les préférences et plugins supplémentaires sont conservés.
+L'assistant permet de relancer l'application après l'installation. La recherche est manuelle ;
+l'application n'effectue aucune requête de mise à jour au démarrage.
+
+Pour un dépôt public, aucun compte n'est requis. Tant que le dépôt est privé, l'accès facultatif
+demande un jeton GitHub disposant de **Contents: read** pour ce dépôt ; il reste uniquement en mémoire
+pendant la session. Le bouton **GitHub releases / Versions GitHub** permet aussi d'ouvrir le navigateur.
+Sous Linux/macOS, la recherche est disponible et le paquet s'installe manuellement depuis cette page.
 
 Après compilation : `build/Release/bin/Cy3DView.exe`, ou l'exécutable `Cy3DView` sous Linux/macOS.
 On peut ouvrir un fichier par glisser-déposer, par l'explorateur intégré, par **Ouvrir** sous Windows,
@@ -173,7 +191,7 @@ Windows : Visual Studio 2022, charge de travail C++, CMake et Ninja fournis par 
 .\build.ps1 -Config Debug
 ```
 
-Linux : compilateur C++20, CMake 3.24+, Ninja et bibliothèques de développement OpenGL/X11.
+Linux : compilateur C++20, CMake 3.24+, Ninja et bibliothèques de développement OpenGL/X11 et libcurl.
 
 ```sh
 cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_WAYLAND=OFF
@@ -235,9 +253,14 @@ cmake --install build/Release --prefix dist/Cy3DView
 ```
 
 Le résultat contient l'application, les plugins, l'exemple, la documentation et les licences tierces.
-Pas encore d'installeur, d'associations de fichiers ou de mise à jour automatique.
+L'installeur Windows ajoute les raccourcis et propose l'application dans « Ouvrir avec », sans changer
+le logiciel par défaut choisi par l'utilisateur. La recherche des mises à jour reste manuelle.
 
 Sous Windows, `powershell -File tools/package.ps1` compile, teste, prépare le dossier portable,
-vérifie son rendu et produit l'archive ZIP portant la version du projet. `-SkipBuild` réutilise le build existant.
+vérifie son rendu et produit l'archive ZIP et l'installeur portant la version du projet.
+Inno Setup 6.7 ou ultérieur est nécessaire à la création de l'installeur ;
+`tools/build_installer.ps1 -Compiler <chemin-vers-ISCC.exe>` permet de préciser son emplacement.
+`-SkipBuild` réutilise le build existant. `tools/installer_test.ps1` vérifie une installation isolée,
+sa mise à jour et sa désinstallation avec une identité Windows dédiée au test.
 
 Voir [les évolutions](docs/CHANGELOG.md), [l'API des plugins](docs/PLUGIN_API.md) et [les dépendances](docs/THIRD_PARTY.md).

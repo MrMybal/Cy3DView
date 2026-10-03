@@ -44,16 +44,16 @@ int main(int argc, char** argv) {
             std::atomic<float> progress{0};
             for (const auto* file :
                  {"FBX/box.fbx", "FBX/embedded_ascii/box.FBX", "FBX/animation_with_skeleton.fbx",
-                  "COLLADA/box_nested_animation.dae", "COLLADA/teapot_instancenodes.DAE", "3MF/box.3mf"}) {
+                  "Collada/box_nested_animation.dae", "Collada/teapot_instancenodes.DAE", "3MF/box.3mf"}) {
                 auto scene = importScene(plugins, directory / path(file), cancel, progress);
                 require(scene->triangles > 0 && scene->vertices > 0, "Corpus model has no geometry");
                 if (std::string(file) == "FBX/embedded_ascii/box.FBX")
                     require(!scene->images.empty() && !scene->images.front().rgba.empty(),
                             "Embedded FBX texture missing");
-                if (std::string(file) == "COLLADA/teapot_instancenodes.DAE")
+                if (std::string(file) == "Collada/teapot_instancenodes.DAE")
                     require(scene->data->instance_count > scene->data->mesh_count, "COLLADA instancing lost");
                 if (std::string(file) == "FBX/animation_with_skeleton.fbx" ||
-                    std::string(file) == "COLLADA/box_nested_animation.dae")
+                    std::string(file) == "Collada/box_nested_animation.dae")
                     require(scene->animation && !scene->animation->clips.empty(), "Corpus animation lost");
                 if (std::string(file) == "FBX/animation_with_skeleton.fbx") {
                     bool skin = false;
