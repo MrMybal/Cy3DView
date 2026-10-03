@@ -13,6 +13,7 @@ Les dépendances sont épinglées dans CMake et vérifiées par SHA-256 lors du 
 | GLAD | copie fournie par GLFW 3.4 | MIT/Apache-2.0, en-tête du fichier | Chargement des fonctions OpenGL |
 
 Les licences des bibliothèques sont copiées dans `licenses/` par l'installation portable.
+Sur macOS, Assimp utilise la zlib du SDK système ; Windows/Linux compilent la copie incluse avec Assimp.
 Assimp contient d'autres composants et leurs notices : voir son fichier `LICENSE` et `contrib/`.
 Les exemples et fichiers de test sont générés dans ce projet, sans asset tiers.
 Le test local Unreal utilise éventuellement un asset du moteur installé, sans le distribuer dans les samples.

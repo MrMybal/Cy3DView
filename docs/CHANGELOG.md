@@ -1,5 +1,11 @@
 # Évolutions
 
+## 0.4.4 — 3 octobre 2026
+
+- Compilation macOS avec la zlib du SDK système, pour éviter l'incompatibilité de la copie Assimp avec les SDK Apple récents.
+- Distribution sous GNU GPL v3.0, notices tierces et mentions de licence dans la fenêtre des plugins.
+- Première distribution Windows portable avec logo, PBR, plugins, interface bilingue et déplacement clavier.
+
 ## 0.4.3 — 3 octobre 2026
 
 - Interface en anglais par défaut ; sélecteur English / Français et choix mémorisé dans le dossier portable.
