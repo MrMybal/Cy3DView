@@ -1,5 +1,9 @@
 # Cy3DView
 
+<p align="center">
+  <img src="assets/logo-256.png" alt="Cy3DView logo" width="128" height="128">
+</p>
+
 **Cy3DView by Cyberalien · GNU GPL v3.0**
 
 Visionneuse de modèles 3D inspirée de **CyImgView** : C++ natif, rendu GPU à la demande,
