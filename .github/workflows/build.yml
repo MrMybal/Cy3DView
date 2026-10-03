@@ -38,7 +38,15 @@ jobs:
       - name: Windows install and upgrade tests
         if: runner.os == 'Windows'
         shell: pwsh
-        run: ./tools/installer_test.ps1
+        # Standard hosted Windows VMs may only provide the legacy GDI OpenGL driver.
+        # Import/payload/install tests stay required; only explicit unsupported-driver errors qualify.
+        run: ./tools/installer_test.ps1 -AllowMissingOpenGL
+      - uses: actions/upload-artifact@v4
+        if: failure() && runner.os == 'Windows'
+        with:
+          name: Cy3DView-Windows-installer-diagnostics
+          path: build/installer-test-*/*.log
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
         with:

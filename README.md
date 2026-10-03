@@ -262,5 +262,10 @@ Inno Setup 6.7 ou ultérieur est nécessaire à la création de l'installeur ;
 `tools/build_installer.ps1 -Compiler <chemin-vers-ISCC.exe>` permet de préciser son emplacement.
 `-SkipBuild` réutilise le build existant. `tools/installer_test.ps1` vérifie une installation isolée,
 sa mise à jour et sa désinstallation avec une identité Windows dédiée au test.
+Le test vérifie les fichiers installés et l'import de modèles depuis les plugins installés.
+Le rendu exige OpenGL 3.3. Sur les machines Windows virtuelles de CI, `-AllowMissingOpenGL`
+tolère uniquement les messages explicites de pilote incompatible ; les autres erreurs restent bloquantes.
+Les journaux de l'import et du rendu sont conservés dans le dossier de test. Les tests graphiques
+restent obligatoires localement par défaut et dans la CI Linux avec Mesa/Xvfb.
 
 Voir [les évolutions](docs/CHANGELOG.md), [l'API des plugins](docs/PLUGIN_API.md) et [les dépendances](docs/THIRD_PARTY.md).
