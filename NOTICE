@@ -1,0 +1,11 @@
+Cy3DView
+Copyright (C) 2026 Cyberalien
+
+Cy3DView's original source code, documentation, samples and artwork are
+licensed under the GNU General Public License, version 3 only (GPL-3.0-only).
+See LICENSE for the full terms. This program comes with no warranty.
+
+Third-party libraries retain their own copyright and license terms.
+Their notices are listed in docs/THIRD_PARTY.md and included in the licenses/
+directory of installed packages. Blender and Unreal are external tools and
+are not distributed with Cy3DView.

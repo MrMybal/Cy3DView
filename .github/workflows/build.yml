@@ -1,0 +1,37 @@
+name: Build and test
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev libgl1-mesa-dri xvfb
+      - name: macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install ninja
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_WAYLAND=OFF
+      - name: Build
+        run: cmake --build build/Release --parallel 3
+      - name: Import tests
+        run: ctest --test-dir build/Release -LE gpu --output-on-failure
+      - name: Linux GPU tests
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --test-dir build/Release -L gpu --output-on-failure
+      - name: Portable package
+        run: cmake --install build/Release --prefix dist/Cy3DView
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cy3DView-${{ runner.os }}
+          path: dist/Cy3DView
