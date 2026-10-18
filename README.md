@@ -1,251 +1,261 @@
 # Cy3DView
 
+**English** · [Français](README.fr.md)
+
 <p align="center">
   <img src="assets/logo-256.png" alt="Cy3DView logo" width="128" height="128">
 </p>
 
 **Cy3DView by Cyberalien · GNU GPL v3.0**
 
-Visionneuse de modèles 3D inspirée de **CyImgView** : C++ natif, rendu GPU à la demande,
-chargement en arrière-plan, cache borné et formats extensibles par plugins.
+A 3D model viewer inspired by **CyImgView**: native C++, on-demand GPU rendering,
+background loading, bounded caches and formats extensible through plugins.
 
-## Licence
+<a id="licence"></a>
 
-Cy3DView est distribué sous **GNU GPL v3.0 uniquement** (`GPL-3.0-only`).
-Voir [LICENSE](LICENSE) et [NOTICE](NOTICE). Le logiciel est fourni sans garantie.
-Les bibliothèques tierces conservent leurs licences et attributions : voir
-[docs/THIRD_PARTY.md](docs/THIRD_PARTY.md).
+## License
 
-Dépôt du projet : [MrMybal/Cy3DView](https://github.com/MrMybal/Cy3DView).
+Cy3DView is distributed under **GNU GPL v3.0 only** (`GPL-3.0-only`).
+See [LICENSE](LICENSE) and [NOTICE](NOTICE). The software comes without warranty.
+Third-party libraries retain their licenses and attribution:
+see [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md).
 
-La version 0.6 possède un moteur portable Windows / Linux / macOS (OpenGL 3.3).
-La compilation et le rendu ont été vérifiés sur Windows ; les configurations Linux/macOS sont prévues dans la CI.
-CyImgView lui-même est actuellement une application Windows : Cy3DView en reprend les principes,
-pas le code Win32/Direct2D.
+Project repository: [MrMybal/Cy3DView](https://github.com/MrMybal/Cy3DView).
 
-## Lancer
+Version 0.6 has a portable Windows / Linux / macOS engine (OpenGL 3.3).
+Building and rendering have been verified on Windows; Linux/macOS configurations are planned
+in CI. CyImgView itself is currently a Windows application: Cy3DView adopts its principles,
+not its Win32/Direct2D code.
 
-Sous Windows, télécharger `Cy3DView-<version>-win64-setup.exe` depuis les
-[versions GitHub](https://github.com/MrMybal/Cy3DView/releases). L'installeur propose
-anglais/français et installe dans `%LOCALAPPDATA%\Programs\Cy3DView`, sans droits administrateur.
-Il ajoute le menu Démarrer, un raccourci bureau facultatif et l'entrée de désinstallation Windows.
-La version ZIP portable reste disponible.
+<a id="lancer"></a>
 
-Le bouton **Updates / Mises à jour** recherche les versions stables, affiche leurs notes,
-télécharge l'installeur et vérifie sa taille et son empreinte SHA-256 publiée par GitHub.
-**Close app and install / Fermer l'application et installer** ouvre l'assistant dans le dossier
-actuel après fermeture de l'application. Les préférences et plugins supplémentaires sont conservés.
-L'assistant permet de relancer l'application après l'installation. La recherche est manuelle ;
-l'application n'effectue aucune requête de mise à jour au démarrage.
+## Run
 
-Pour un dépôt public, aucun compte n'est requis. Tant que le dépôt est privé, l'accès facultatif
-demande un jeton GitHub disposant de **Contents: read** pour ce dépôt ; il reste uniquement en mémoire
-pendant la session. Le bouton **GitHub releases / Versions GitHub** permet aussi d'ouvrir le navigateur.
-Sous Linux/macOS, la recherche est disponible et le paquet s'installe manuellement depuis cette page.
+On Windows, download `Cy3DView-<version>-win64-setup.exe` from
+[GitHub releases](https://github.com/MrMybal/Cy3DView/releases). The installer offers English/French
+and installs in `%LOCALAPPDATA%\Programs\Cy3DView` without administrator rights.
+It adds a Start menu entry, optional desktop shortcut and Windows uninstall entry.
+A portable ZIP version remains available.
 
-Après compilation : `build/Release/bin/Cy3DView.exe`, ou l'exécutable `Cy3DView` sous Linux/macOS.
-On peut ouvrir un fichier par glisser-déposer, par l'explorateur intégré, par **Ouvrir** sous Windows,
-ou en le passant sur la ligne de commande. Les démonstrations incluses contiennent un nœud torique turquoise
-et `samples/pbr_studio.gltf` : 18 sphères, métal de haut en bas et rugosité de gauche à droite.
-`animated_flag.glb`, `colored_cloud.ply`, `gaussian_cloud.splat` et `usd_scene.usda` illustrent les nouveaux lecteurs.
+**Updates** checks stable releases, displays their notes, downloads the installer and verifies
+its size and GitHub-published SHA-256 hash. **Close app and install** closes the application
+and opens the installer in the current folder. Preferences and additional plugins are retained.
+The installer offers to relaunch the application. Checks are manual; no update request runs at startup.
 
-Le dossier `plugins/` doit rester à côté de l'exécutable. L'application fonctionne hors ligne.
-L'interface démarre en **anglais**. Le sélecteur **English / Français** dans la barre supérieure
-change immédiatement la langue. Le choix est conservé dans `Cy3DView.ini`, à côté de l'exécutable
-(le dossier doit être accessible en écriture pour mémoriser cette préférence).
-La ligne de commande accepte également `--language en` ou `--language fr`.
-Le logo violet est embarqué dans l'application : en-tête, accueil, fenêtre des plugins et icône Windows.
-Pour remplacer le visuel dans les sources, mettre à jour `cy3dview-logo-violet.png`, puis exécuter
-`python tools/prepare_logo.py` (Pillow requis pour cette préparation seulement) et recompiler.
+Public repositories require no account. For a private repository, optional access requires a
+GitHub token with **Contents: read** for that repository; it stays in memory only for the session.
+**GitHub releases** also opens the browser. Linux/macOS support checking, with manual installation
+from that page.
 
-## Conversion et outils
+After building, run `build/Release/bin/Cy3DView.exe`, or `Cy3DView` on Linux/macOS.
+Open a file by drag and drop, the built-in browser, **Open** on Windows, or a command-line argument.
+Included demos contain a turquoise torus knot and `samples/pbr_studio.gltf`: 18 spheres, metallic
+factor from top to bottom and roughness from left to right. `animated_flag.glb`, `colored_cloud.ply`,
+`gaussian_cloud.splat` and `usd_scene.usda` demonstrate the new readers.
 
-Le bouton **Export / Exporter** convertit la scène vers GLB, glTF, FBX binaire ou ASCII,
-OBJ + MTL, STL et PLY. **Tools / Outils** ouvre les éditeurs fournis par les plugins.
-Le premier est un véritable éditeur d'atlas UV avec **xatlas**, aperçu, progression,
-annulation et restauration de l'état précédent. Les modifications restent sur une copie
-et peuvent être exportées ; le modèle source est conservé.
+Keep `plugins/` beside the executable. The application works offline and starts in **English**.
+The **English / Français** selector in the top bar switches language immediately. The choice
+is saved in `Cy3DView.ini` beside the executable; the folder must be writable to retain it.
+The command line also accepts `--language en` or `--language fr`. The purple logo is embedded
+in the header, home screen, plugins window and Windows icon. To replace it in the sources,
+update `cy3dview-logo-violet.png`, run `python tools/prepare_logo.py` (Pillow is needed only
+for this preparation), then rebuild.
 
-Voir [les formats et limites de conversion](docs/EXPORTING.md) et
-[l'API pour ajouter des exporteurs ou outils](docs/PLUGIN_EXTENSIONS.md).
+<a id="conversion-et-outils"></a>
 
-## Fonctions disponibles
+## Conversion and tools
 
-- Affichage des triangles, normales, couleurs de matériaux et textures de couleur externes ou embarquées.
-- Rendu **PBR metallic/roughness** : BRDF GGX, Fresnel, éclairage direct et studio HDR intégré.
-- Reflets de studio préfiltrés selon la rugosité, lumière diffuse ambiante et table d'intégration BRDF.
-- Textures de couleur, métal, rugosité, normales, occlusion et émission ; images partagées dédupliquées.
-- Textures de couleur/émission en sRGB, données de matériau en linéaire, exposition et tone mapping.
-- Import glTF des canaux ORM, UV0/UV1, transformations UV, répétition/clamp/miroir,
-  intensité des normales, occlusion, émission, matériaux unlit et modes alpha opaque/mask/blend.
-- Réglages d'exposition, intensité et orientation du studio ; relief et occlusion désactivables.
+**Export** converts the scene to GLB, glTF, binary or ASCII FBX, OBJ + MTL, STL and PLY.
+**Tools** opens editors supplied by plugins. The first is a UV atlas editor using **xatlas**,
+with preview, progress, cancellation and restoration of the previous state. Edits remain on
+a copy and can be exported; the source model is preserved.
 
-Le mapping des matériaux suit les conventions de la [spécification glTF 2.0 de Khronos](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials).
+See [conversion formats and limits](docs/EXPORTING.md) and
+[the API for adding exporters or tools](docs/PLUGIN_EXTENSIONS.md).
 
-Autres fonctions :
+<a id="fonctions-disponibles"></a>
 
-- Animations de transformations et de squelettes, déformation des sommets sur le GPU,
-  sélection du clip, lecture/pause, boucle, vitesse et déplacement sur la timeline.
-- Interpolation linéaire et STEP, rotations par interpolation sphérique, affichage des os.
-- Couleurs de sommets, nuages de points avec taille réglable et splats gaussiens anisotropes.
-- Transformations de scène et instances : un maillage partagé n'est importé/enregistré sur le GPU qu'une fois.
-- Caméra orbitale, déplacement continu avec **WASD ou ZQSD**, zoom, cadrage automatique et plein écran.
-- Interface anglais/français, anglais par défaut, changement de langue immédiat et préférence mémorisée.
-- Modes matériaux, argile, normales et filaire ; grille désactivable et rotation automatique.
-- Explorateur de dossier avec tri naturel, filtre de recherche et navigation entre modèles.
-- Chargement sur un thread dédié avec annulation des demandes obsolètes.
-- Bandeau de chargement animé, étape en cours, temps écoulé et pourcentage pendant la préparation GPU.
-- Transfert progressif des sommets, indices et textures vers le GPU ; le modèle précédent reste visible jusqu'à la fin.
-- Annulation explicite avec Échap ou le bouton Annuler, y compris pendant le transfert GPU.
-- Cache LRU de scènes de **256 Mio**, invalidé lorsque le modèle ou ses dépendances changent.
-- Cache GPU LRU de **256 Mio estimés** : les buffers d'une scène inchangée sont réutilisés quand on y revient.
-- Préchargement des deux voisins, y compris après la lecture du dossier d'un fichier ouvert au démarrage.
-- Décompression des textures sur le thread d'import, budget de **256 Mio** de RGBA par scène.
-- Rendu uniquement lorsqu'un événement arrive, hors déplacement clavier, chargement, saisie, animation ou rotation automatique.
-- Informations de géométrie, dimensions, temps d'import, temps d'envoi GPU et mémoire estimée.
-- Lignes de l'explorateur dessinées seulement lorsqu'elles sont visibles, avec filtre et navigation indexés.
-- Captures PNG du viewport, avec confirmation avant de remplacer un fichier existant.
+## Available features
 
-| Raccourci / geste | Action |
+- Triangles, normals, material colors and external or embedded color textures.
+- **Metallic/roughness PBR**: GGX BRDF, Fresnel, direct lighting and a built-in HDR studio.
+- Studio reflections prefiltered by roughness, ambient diffuse lighting and a BRDF integration table.
+- Color, metal, roughness, normal, occlusion and emission textures; shared images are deduplicated.
+- Color/emission textures in sRGB, linear material data, exposure and tone mapping.
+- glTF import of ORM channels, UV0/UV1, UV transforms, repeat/clamp/mirror, normal strength,
+  occlusion, emission, unlit materials and opaque/mask/blend alpha modes.
+- Exposure, studio intensity/orientation controls; normal mapping and occlusion can be disabled.
+
+Material mapping follows the [Khronos glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials).
+
+Other features:
+
+- Transform and skeletal animation, GPU vertex deformation, clip selection, play/pause,
+  looping, speed and timeline seeking.
+- Linear and STEP interpolation, spherical rotation interpolation and bone display.
+- Vertex colors, point clouds with adjustable size and anisotropic Gaussian splats.
+- Scene transforms and instances: a shared mesh is imported/uploaded to the GPU only once.
+- Orbit camera, continuous **WASD or ZQSD** movement, zoom, automatic framing and fullscreen.
+- English/French interface, English by default, immediate switching and saved preference.
+- Material, clay, normal and wireframe modes; optional grid and automatic rotation.
+- Folder browser with natural sorting, search filter and model navigation.
+- Dedicated loading thread that cancels obsolete requests.
+- Animated loading banner, current stage, elapsed time and percentage during GPU preparation.
+- Progressive GPU upload of vertices, indices and textures; the previous model remains visible until completion.
+- Explicit cancellation through Escape or Cancel, including during GPU upload.
+- **256 MiB** scene LRU cache, invalidated when the model or its dependencies change.
+- GPU LRU cache of **256 MiB estimated**: unchanged scene buffers are reused on return.
+- Preloading of two neighbors, including after reading the folder of a file opened at startup.
+- Texture decompression on the import thread, with a **256 MiB** RGBA budget per scene.
+- Rendering only on events, except during keyboard movement, loading, input, animation or automatic rotation.
+- Geometry, dimensions, import time, GPU upload time and estimated memory information.
+- Browser rows drawn only when visible, with indexed filtering and navigation.
+- Viewport PNG screenshots, with confirmation before replacing an existing file.
+
+| Shortcut / gesture | Action |
 |---|---|
-| Ctrl+O | Ouvrir (sélecteur Windows ; explorateur intégré ailleurs) |
-| Glisser gauche | Orbite |
-| Glisser droit / milieu | Déplacer la caméra |
-| WASD / ZQSD | Avancer, reculer et se déplacer latéralement selon la direction de la caméra |
-| Maj + WASD / ZQSD | Déplacement quatre fois plus rapide |
-| Molette | Zoom |
-| Home / double clic | Recentrer |
-| Gauche / droite | Modèle précédent / suivant |
-| F / G / T | Filaire / grille / textures |
-| Espace | Rotation automatique |
-| F11 / Échap | Plein écran / annuler le chargement ou quitter le plein écran |
-| Ctrl+S | Capture PNG |
+| Ctrl+O | Open (Windows picker; built-in browser elsewhere) |
+| Left drag | Orbit |
+| Right / middle drag | Pan camera |
+| WASD / ZQSD | Move forward, backward and sideways relative to the camera |
+| Shift + WASD / ZQSD | Move four times faster |
+| Wheel | Zoom |
+| Home / double-click | Recenter |
+| Left / right | Previous / next model |
+| F / G / T | Wireframe / grid / textures |
+| Space | Automatic rotation |
+| F11 / Escape | Fullscreen / cancel loading or leave fullscreen |
+| Ctrl+S | PNG screenshot |
 
-Les deux dispositions clavier fonctionnent simultanément : W ou Z pour avancer, A ou Q pour aller
-à gauche, S pour reculer et D pour aller à droite. La vitesse dépend de l'échelle du modèle et du zoom ;
-elle reste identique en diagonale et indépendante de la fréquence d'affichage. Les déplacements sont
-bloqués pendant le chargement, la saisie de texte, l'utilisation d'un contrôle, l'ouverture d'un dialogue
-ou lorsque la fenêtre perd le focus. Relâcher les touches remet le rendu au repos.
+Both keyboard layouts work simultaneously: W/Z forward, A/Q left, S backward and D right.
+Speed depends on model scale and zoom, stays constant diagonally and is independent of frame
+rate. Movement is blocked during loading, text input, control use, dialogs or loss of focus.
+Releasing the keys returns rendering to idle.
 
 ## Formats
 
-**STL natif** : lecteur dédié ASCII et binaire, fichier mappé en mémoire, sans copie de l'entrée,
-avec annulation et contrôle des tailles. Les sommets par face conservent les arêtes nettes ; ce lecteur
-privilégie la vitesse et utilise davantage de mémoire que le soudage des sommets d'Assimp.
+**Native STL**: dedicated ASCII/binary reader, memory-mapped input without copying, cancellation
+and size checks. Per-face vertices preserve sharp edges; this reader favors speed and uses
+more memory than Assimp's vertex welding.
 
-**Assimp 6.0.2** : OBJ/MTL, FBX, glTF/GLB, PLY, Collada/DAE, 3DS, 3MF, OFF, X, LWO,
-DXF, IFC et d'autres extensions annoncées par la bibliothèque. La liste exacte est générée
-depuis le plugin compilé, accessible avec le bouton **Plugins** ou `cy3d_probe --formats`.
-Une extension annoncée ne garantit pas la compatibilité avec toutes les versions/variantes du format.
+**Assimp 6.0.2**: OBJ/MTL, FBX, glTF/GLB, PLY, Collada/DAE, 3DS, 3MF, OFF, X, LWO,
+DXF, IFC and other extensions advertised by the library. The exact list comes from the built
+plugin, through **Plugins** or `cy3d_probe --formats`. An advertised extension does not guarantee
+compatibility with every version/variant of that format.
 
-**Nuages natifs** : PLY ASCII, binaire little/big endian, XYZ et PTS avec positions et couleurs.
-Les PLY comportant des faces sont confiés à Assimp. Pour XYZ/PTS : XYZ, XYZ RGB ou XYZ intensité RGB,
-couleurs RGB de 0 à 255 ; PTS commence par le nombre de points. Les propriétés PLY peuvent être réordonnées ;
-les couleurs PLY flottantes sont interprétées de 0 à 1.
+**Native point clouds**: ASCII and little-/big-endian binary PLY, XYZ and PTS with positions
+and colors. PLY with faces goes to Assimp. XYZ/PTS accept XYZ, XYZ RGB or XYZ intensity RGB,
+with RGB from 0 to 255; PTS starts with a point count. PLY properties may be reordered;
+floating-point PLY colors are interpreted from 0 to 1.
 
-**Gaussian Splatting** : `.splat` de 32 octets par point (positions, échelles, RGBA et quaternion WXYZ),
-et PLY gaussian avec `f_dc_*`, `opacity`, `scale_*`, `rot_*`.
-Projection de la covariance anisotrope, transparence gaussienne et tri en profondeur par radix.
-Les coefficients SH directionnels au-delà du degré 0 restent ignorés ; pas encore de `.ksplat`, `.spz`
-ou de streaming de scènes dépassant la mémoire disponible.
+**Gaussian Splatting**: 32-byte-per-point `.splat` (positions, scales, RGBA and WXYZ quaternion),
+and Gaussian PLY with `f_dc_*`, `opacity`, `scale_*`, `rot_*`. Anisotropic covariance projection,
+Gaussian transparency and radix depth sorting. Directional SH coefficients above degree 0
+are ignored; `.ksplat`, `.spz` and streaming scenes beyond available memory are not supported yet.
 
-**USD / USDA / USDC / USDZ** : lecteur natif expérimental via Assimp et tinyusdz épinglés.
-Les quatre conteneurs sont testés, dont un USDC produit avec Blender 5.2.
-Ce lecteur ne garantit pas toutes les compositions, variantes, matériaux et animations USD.
-Les fichiers USD sont relus à chaque ouverture, car le lecteur amont n'expose pas toutes ses dépendances
-externes à notre cache. Préférer des scènes autonomes/aplaties pour cette première intégration.
+**USD / USDA / USDC / USDZ**: experimental native reader using pinned Assimp and tinyusdz.
+All four containers are tested, including a USDC made with Blender 5.2. This does not guarantee
+all USD compositions, variants, materials and animations. USD files are reread on each opening
+because the upstream reader does not expose all external dependencies to the cache.
+Prefer self-contained/flattened scenes for this initial integration.
 
-**Blender récent** : plugin de conversion automatique utilisant un Blender installé, puis notre lecteur GLB.
-Vérifié avec Blender 5.2.1, animations et skin compris. Les scripts intégrés au fichier sont désactivés.
-Blender n'est pas embarqué ; `CY3D_BLENDER` peut indiquer le chemin de son exécutable.
-Les matériaux procéduraux non exportables en glTF ne sont pas cuits automatiquement.
-Les références de textures exportées avec un indice UV invalide sont corrigées : le jeu UV principal
-est utilisé lorsqu'il existe ; sinon les valeurs PBR constantes du matériau Blender remplacent ces textures,
-avec un avertissement. La conversion ne modifie pas le fichier `.blend` source.
+**Recent Blender**: automatic conversion plugin using an installed Blender, followed by the
+GLB reader. Verified with Blender 5.2.1, including animation and skinning. Embedded scripts
+are disabled. Blender is not bundled; `CY3D_BLENDER` can specify its executable. Procedural
+materials that cannot be exported to glTF are not automatically baked. Texture references
+exported with an invalid UV index are corrected: the main UV set is used when available;
+otherwise constant PBR values from the Blender material replace those textures, with a warning.
+Conversion does not change the source `.blend` file.
 
-**Unreal `.uasset`** : passerelle optionnelle utilisant l'Unreal Editor correspondant au projet.
-Vérifiée sous Windows avec UE 5.6 et des StaticMesh dans `/Engine/` et `/Game/`.
-Le fichier doit conserver son emplacement dans `Content`, son `.uproject` et ses dépendances.
-Seuls StaticMesh/SkeletalMesh non cuits sont acceptés ; pas les packages de jeux, Blueprints, mondes,
-ni les classes natives de projet ou les montages de plugins spécifiques.
-`CY3D_UNREAL_EDITOR` permet de choisir l'exécutable `UnrealEditor-Cmd`.
-Les assets source ne sont pas sauvegardés. La cuisson des matériaux est désactivée pour éviter de compiler
-des shaders ; les expressions exportables en glTF sont reprises, les autres peuvent être simplifiées.
-Les clips AnimationSequence distincts ne sont pas associés automatiquement à un SkeletalMesh.
+**Unreal `.uasset`**: optional bridge using the project's matching Unreal Editor.
+Verified on Windows with UE 5.6 and StaticMesh assets under `/Engine/` and `/Game/`.
+The file must retain its location in `Content`, its `.uproject` and dependencies.
+Only uncooked StaticMesh/SkeletalMesh are accepted, not game packages, Blueprints, worlds,
+native project classes or specific plugin mounts. `CY3D_UNREAL_EDITOR` selects the
+`UnrealEditor-Cmd` executable. Source assets are not saved. Material baking is disabled to
+avoid shader compilation; glTF-exportable expressions are retained and others may be simplified.
+Separate AnimationSequence clips are not automatically associated with a SkeletalMesh.
 
-Ces deux passerelles lancent une conversion en arrière-plan au premier accès ; elles peuvent prendre
-plusieurs secondes. Les GLB convertis sont mis en cache dans le dossier temporaire `Cy3DView-conversions`,
-avec un budget de 256 Mio et invalidation sur changement des fichiers, dépendances, outils et scripts.
-Le chargement peut être annulé ; les processus de conversion sont limités à quatre minutes.
-La détection d'Unreal est actuellement Windows ; ailleurs, utiliser la variable d'environnement.
+Both bridges run a background conversion on first access and may take several seconds.
+Converted GLBs are cached in the temporary `Cy3DView-conversions` folder with a 256 MiB budget,
+invalidated on file, dependency, tool or script changes. Loading can be canceled; conversion
+processes are limited to four minutes. Unreal detection currently targets Windows; elsewhere
+use the environment variable.
 
-Les formats CAD propriétaires et géométries compressées Draco ne sont pas inclus dans ce build.
-STEP/STP annoncé par Assimp correspond à ses importeurs spécifiques, pas à un moteur CAD général.
+Proprietary CAD formats and Draco-compressed geometry are absent from this build.
+Assimp's advertised STEP/STP refers to its specific importers, not a general CAD engine.
 
-Les morph targets, contraintes, simulations et courbes CUBICSPLINE exactes restent à ajouter.
-Pour ces dernières, Assimp ne conserve pas les tangentes : une interpolation linéaire/sphérique est utilisée
-avec un avertissement. Au maximum quatre influences d'os sont conservées par sommet.
-Le cadrage initial utilise les dimensions de la pose importée ; un mouvement très ample peut demander un zoom arrière.
-Le PBR couvre le workflow metallic/roughness ; clearcoat, transmission, sheen, anisotropie
-et specular/glossiness ne sont pas interprétés fidèlement. Pas encore d'import d'environnement HDR personnel,
-d'ombres portées, de SSAO ou d'anticrénelage. L'occlusion vient des textures du matériau.
-Les transparences sont triées par centre d'instance, sans tri des triangles : des surfaces qui s'entrecroisent
-peuvent être incorrectes. Les normal maps utilisent une base tangente reconstruite à partir des dérivées UV ;
-les tangentes personnalisées du fichier ne sont pas conservées. UV0 et UV1 sont disponibles ; un matériau
-qui demande UV2 ou plus est rejeté avec un diagnostic. Les filtres d'échantillonnage sont linéaires avec mipmaps.
-Pour OBJ/FBX et les autres formats, les propriétés reprises dépendent de ce qu'Assimp expose ;
-les anciens matériaux diffus reçoivent un métal nul et une rugosité dérivée de leur brillance, si disponible.
-Les unités affichées sont celles du fichier ; la passerelle Unreal convertit les centimètres en mètres.
+Morph targets, constraints, simulations and exact CUBICSPLINE curves remain to be added.
+For CUBICSPLINE, Assimp does not retain tangents, so linear/spherical interpolation is used
+with a warning. At most four bone influences are retained per vertex. Initial framing uses
+the imported pose's dimensions; large movement may require zooming out.
 
-## Compiler
+PBR covers metallic/roughness. Clearcoat, transmission, sheen, anisotropy and specular/glossiness
+are not interpreted faithfully. Custom HDR environment import, cast shadows, SSAO and
+antialiasing are not available yet. Occlusion comes from material textures. Transparency is
+sorted by instance center without triangle sorting, so intersecting surfaces may be incorrect.
+Normal maps use a tangent basis reconstructed from UV derivatives; custom file tangents are
+not retained. UV0 and UV1 are available; materials requesting UV2 or higher are rejected with
+a diagnostic. Sampling uses linear filters with mipmaps. For OBJ/FBX and other formats,
+retained properties depend on what Assimp exposes; older diffuse materials receive zero metal
+and roughness derived from shininess when available. Displayed units follow the file;
+the Unreal bridge converts centimeters to meters.
 
-Windows : Visual Studio 2022, charge de travail C++, CMake et Ninja fournis par Visual Studio.
+<a id="compiler"></a>
+
+## Build
+
+Windows: Visual Studio 2022, C++ workload, and CMake/Ninja supplied by Visual Studio.
 
 ```powershell
 .\build.ps1
 .\build.ps1 -Config Debug
 ```
 
-Linux : compilateur C++20, CMake 3.24+, Ninja et bibliothèques de développement OpenGL/X11 et libcurl.
+Linux: C++20 compiler, CMake 3.24+, Ninja, OpenGL/X11 development libraries and libcurl.
 
 ```sh
 cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_WAYLAND=OFF
 cmake --build build/Release --parallel
 ```
 
-macOS : outils Xcode, CMake et Ninja ; mêmes commandes, sans l'option X11/Wayland.
-Apple fournit encore OpenGL 3.3 via son profil core, mais l'API y est dépréciée.
+macOS: Xcode tools, CMake and Ninja; the same commands without the X11/Wayland option.
+Apple still provides OpenGL 3.3 through its core profile, but the API is deprecated there.
 
-Les dépendances sont téléchargées automatiquement au premier CMake, avec versions et SHA-256 épinglés.
-Si le téléchargement CMake pose problème, `python tools/fetch_deps.py` prépare `third_party/`.
-Les dépendances locales sont réutilisées ; aucun runtime C++ redistribuable n'est nécessaire pour le build MSVC statique.
+Dependencies download automatically on the first CMake run, with pinned versions and SHA-256.
+If CMake downloads fail, `python tools/fetch_deps.py` prepares `third_party/`.
+Local dependencies are reused; the static MSVC build requires no C++ redistributable runtime.
 
-## Vérifier et mesurer
+<a id="vérifier-et-mesurer"></a>
+
+## Verify and measure
 
 ```sh
 ctest --test-dir build/Release --output-on-failure
 build/Release/bin/cy3d_probe --test tests/fixtures
-build/Release/bin/cy3d_probe mon_modele.glb 5
+build/Release/bin/cy3d_probe my_model.glb 5
 ```
 
-Les tests vérifient OBJ texturé, STL ASCII/binaire, PLY, glTF avec instances transformées,
-GLB à texture embarquée, chemins accentués, fichiers invalides/tronqués/absents, annulation,
-cache et ordre des requêtes. Les tests `gpu` exigent une session graphique (Xvfb + Mesa sous Linux).
-Le corpus Assimp vérifie aussi FBX, Collada et 3MF, dont un FBX avec squelette et un Collada animé.
-Le test GPU vérifie la préparation progressive,
-l'annulation, le maintien de l'ancien affichage en cas d'erreur, les textures et le cache GPU.
-Le test PBR vérifie les facteurs, les canaux ORM, transformations UV, normal maps, occlusion, émission,
-exposition, couleur sRGB, alpha et le rendu réel de la scène de studio. Il génère des captures et
-`build/Release/pbr-metrics.json`, avec un chronométrage GPU distinct du temps CPU affiché dans l'interface.
-Le test étendu vérifie les clips, STEP, hiérarchie, déformation GPU, squelette, lecture/boucle,
-sept encodages de nuages/splats, quatre extensions USD et les chemins accentués.
-Les fixtures USDC/.blend sont produites par `tools/make_bridge_fixtures.py` exécuté dans Blender ;
-les autres par `tools/make_extended_fixtures.py`. Ces fichiers générés sont livrés avec les sources.
-Pour activer les tests locaux des passerelles, configurer CMake avec `CY3D_TEST_BLENDER` (exécutable)
-et/ou `CY3D_TEST_UNREAL_ASSET` (mesh non cuit dans Content). Ils portent le label `integration`.
-Le test `blender_texture_regression` reproduit les indices UV négatifs et vérifie les valeurs de matériau,
-les UV valides et la conservation des données binaires. `--loading-smoke modele capture.png` produit
-deux captures du chargement et une capture finale pour contrôler visuellement l'indicateur animé.
+Tests cover textured OBJ, ASCII/binary STL, PLY, glTF transformed instances, GLB embedded
+textures, accented paths, invalid/truncated/missing files, cancellation, cache and request
+ordering. `gpu` tests require a graphics session (Xvfb + Mesa on Linux). The Assimp corpus
+also checks FBX, Collada and 3MF, including a skeletal FBX and animated Collada.
+
+GPU tests verify progressive preparation, cancellation, preservation of the previous display
+on errors, textures and GPU cache. PBR tests verify factors, ORM channels, UV transforms,
+normal maps, occlusion, emission, exposure, sRGB, alpha and actual studio-scene rendering.
+They generate screenshots and `build/Release/pbr-metrics.json`, with GPU timing separate from
+the CPU time displayed in the interface. Extended tests cover clips, STEP, hierarchy, GPU
+deformation, skeleton, playback/looping, seven cloud/splat encodings, four USD extensions
+and accented paths.
+
+USDC/.blend fixtures are produced by `tools/make_bridge_fixtures.py` in Blender; the others
+by `tools/make_extended_fixtures.py`. Generated files ship with the sources. To enable local
+bridge tests, configure CMake with `CY3D_TEST_BLENDER` (executable) and/or `CY3D_TEST_UNREAL_ASSET`
+(uncooked mesh in Content). These have the `integration` label. `blender_texture_regression`
+reproduces negative UV indices and checks material values, valid UVs and preservation of binary
+data. `--loading-smoke model capture.png` produces two loading screenshots and a final screenshot
+to visually check the animated indicator.
 
 ```sh
 python tools/generate_benchmark.py --triangles 200000
@@ -253,34 +263,37 @@ build/Release/bin/cy3d_probe --plugin build/Release/bin/plugins/cy3d_stl.dll bui
 build/Release/bin/cy3d_probe --plugin build/Release/bin/plugins/cy3d_assimp.dll build/benchmark.stl
 ```
 
-Ces mesures portent sur l'import CPU, sans envoi GPU. Elles doivent être répétées sur des modèles représentatifs
-avant toute promesse de vitesse générale. Les imports Assimp utilisent leur mémoire de travail en plus de la scène
-finale ; la limite de 2 Gio porte sur la sortie, pas sur la consommation maximale du processus.
-L'envoi GPU est découpé en blocs de 1 Mio sur le thread graphique, avec un budget de soumission par tour.
-L'allocation des buffers et la génération des mipmaps peuvent néanmoins dépasser ce budget selon le pilote.
-Le modèle actif et la scène en préparation s'ajoutent aux limites des caches lorsqu'ils n'y tiennent pas.
-Voir les [mesures initiales et leurs limites](docs/PERFORMANCE.md).
+These measure CPU import without GPU upload. Repeat them on representative models before
+making general speed claims. Assimp imports use working memory in addition to the final scene;
+the 2 GiB limit applies to output, not peak process memory. GPU upload is split into 1 MiB
+blocks on the graphics thread with a per-turn submission budget. Buffer allocation and mipmap
+generation may still exceed this budget depending on the driver. The active model and scene
+being prepared add to cache limits when they do not fit. See
+[initial measurements and their limits](docs/PERFORMANCE.md).
 
-## Distribuer
+<a id="distribuer"></a>
+
+## Distribute
 
 ```sh
 cmake --install build/Release --prefix dist/Cy3DView
 ```
 
-Le résultat contient l'application, les plugins, l'exemple, la documentation et les licences tierces.
-L'installeur Windows ajoute les raccourcis et propose l'application dans « Ouvrir avec », sans changer
-le logiciel par défaut choisi par l'utilisateur. La recherche des mises à jour reste manuelle.
+Output includes the application, plugins, sample, documentation and third-party licenses.
+The Windows installer adds shortcuts and offers the application in “Open with” without changing
+the user's default software. Update checks remain manual.
 
-Sous Windows, `powershell -File tools/package.ps1` compile, teste, prépare le dossier portable,
-vérifie son rendu et produit l'archive ZIP et l'installeur portant la version du projet.
-Inno Setup 6.7 ou ultérieur est nécessaire à la création de l'installeur ;
-`tools/build_installer.ps1 -Compiler <chemin-vers-ISCC.exe>` permet de préciser son emplacement.
-`-SkipBuild` réutilise le build existant. `tools/installer_test.ps1` vérifie une installation isolée,
-sa mise à jour et sa désinstallation avec une identité Windows dédiée au test.
-Le test vérifie les fichiers installés et l'import de modèles depuis les plugins installés.
-Le rendu exige OpenGL 3.3. Sur les machines Windows virtuelles de CI, `-AllowMissingOpenGL`
-tolère uniquement les messages explicites de pilote incompatible ; les autres erreurs restent bloquantes.
-Les journaux de l'import et du rendu sont conservés dans le dossier de test. Les tests graphiques
-restent obligatoires localement par défaut et dans la CI Linux avec Mesa/Xvfb.
+On Windows, `powershell -File tools/package.ps1` builds, tests, prepares the portable folder,
+checks rendering and produces a ZIP and installer using the project version.
+Inno Setup 6.7 or newer is required for the installer;
+`tools/build_installer.ps1 -Compiler <path-to-ISCC.exe>` specifies its location.
+`-SkipBuild` reuses an existing build. `tools/installer_test.ps1` checks an isolated install,
+update and uninstall with a dedicated Windows test identity. It verifies installed files
+and model imports from installed plugins. Rendering requires OpenGL 3.3.
 
-Voir [les évolutions](docs/CHANGELOG.md), [l'API des plugins](docs/PLUGIN_API.md) et [les dépendances](docs/THIRD_PARTY.md).
+On Windows CI virtual machines, `-AllowMissingOpenGL` tolerates only explicit incompatible-driver
+messages; other errors remain blocking. Import/render logs are kept in the test folder.
+Graphics tests remain mandatory by default locally and in Linux CI with Mesa/Xvfb.
+
+See [changes](docs/CHANGELOG.md), [the plugin API](docs/PLUGIN_API.md)
+and [dependencies](docs/THIRD_PARTY.md).
